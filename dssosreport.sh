@@ -7,9 +7,7 @@ NAMESPACE=default
 IMAGE=alpine:3.15
 # IMAGE=mcr.microsoft.com/dotnet/runtime-deps:6.0
 SOSREPORT_ARGS="-a"
-CP_COMMAND="cd /tmp && tar zvc dspcap"
-DEL_COMMAND="rm -rf /tmp/dspcap"
-
+DEL_COMMAND="rm -rf /tmp/sosreport-*.tar.xz"
 
 # create the daemonset 
 createds() {
@@ -47,7 +45,7 @@ spec:
           echo \$! >$PIDFILE
           wait
           rm $PIDFILE
-          echo "sleeping forever \$(NODE_NAME)"
+          echo "ready to download sosreport for \$(NODE_NAME)"
           sleep infinity
         image: $IMAGE
         env:
@@ -70,27 +68,27 @@ EOF
 
 # progress bar
 checkstatus() {
-  bar="#\r"
   pods=$(kubectl get pods -l app=dssosreport -o name)
   for po in $(echo ${pods}); do
+    bar="#\r"
     run=true
     while $run ; do
-      kubectl logs $po --tail=2 | grep "sleep infinity"
+      kubectl logs $po --tail=2 | grep "ready to download sosreport"
       if [ $? -eq 0 ]; then run=false; fi
       bar="${bar}#"
       sleep 3
       echo -ne $bar
     done
   done
-  echo "Generating sosreport finished. : $RET"
+  echo "\rGenerating sosreport finished."
 }
 
 # getting the sosreport files
-files() {
+getfiles() {
   for pod in $(kubectl get po -l app=dssosreport -o jsonpath='{.items[*].metadata.name}' -n default); do
     _filename=$(kubectl logs $pod | grep -E "sosreport-(.*).tar.xz" | awk -F '/' '{print $3}')
     echo " - downloading sosreport for $pod : $_filename"
-    kubectl cp $pod:$_filename /tmp/$_filename
+    kubectl cp $pod:tmp/$_filename $_filename
   done
   echo "Generated sosreports copied."
 }
@@ -109,5 +107,5 @@ deleteds() {
 
 createds
 checkstatus
-files
+getfiles
 deleteds
