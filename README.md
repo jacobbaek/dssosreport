@@ -12,4 +12,4 @@ $ curl -sL https://raw.githubusercontent.com/jacobbaek/dssosreport/main/dssosrep
 ```
 
 # Background
-movitated by [dspcap](https://github.com/tdihp/dspcap/tree/master)
+Inspired by [dspcap](https://github.com/tdihp/dspcap/tree/master)
