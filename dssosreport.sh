@@ -77,10 +77,10 @@ checkstatus() {
       if [ $? -eq 0 ]; then run=false; fi
       bar="${bar}#"
       sleep 3
-      echo -ne $bar
+      printf $bar
     done
   done
-  echo "\rGenerating sosreport finished."
+  echo "\nGenerating sosreport finished."
 }
 
 # getting the sosreport files
@@ -97,7 +97,7 @@ getfiles() {
 deleteds() {
   pods=$(kubectl get pods -l app=dssosreport -o name)
   for po in $(echo ${pods}); do
-    echo "  deleting sosreport for $po"
+    echo " - deleting sosreport for $po"
     kubectl exec -n $NAMESPACE "$po" -- bash -c "$DEL_COMMAND"
   done
 
